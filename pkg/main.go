@@ -13,8 +13,6 @@ import (
 type WebDirScanner struct {
 	url      string
 	wordlist string
-
-	wg *sync.WaitGroup
 }
 
 func (w *WebDirScanner) scanDir(dir string) {
@@ -23,6 +21,7 @@ func (w *WebDirScanner) scanDir(dir string) {
 	}
 	uri := w.url + dir
 
+	//fmt.Printf("Scanning dir /%s\n", dir)
 	resp, err := http.Get(uri)
 	if err != nil {
 		fmt.Printf("Http request error: %v\n", err)
@@ -36,7 +35,6 @@ func (w *WebDirScanner) scanDir(dir string) {
 }
 
 func (w *WebDirScanner) Scan() {
-	defer w.wg.Done()
 
 	file, err := os.Open(w.wordlist)
 	if err != nil {
@@ -44,10 +42,12 @@ func (w *WebDirScanner) Scan() {
 	}
 	defer file.Close()
 
-	const numWorkers = 100
+	// Jobs
+	const numWorkers = 200
 	jobs := make(chan string)
 	var innerWg sync.WaitGroup
 
+	// scanning dir
 	for i := 0; i < numWorkers; i++ {
 		innerWg.Add(1)
 		go func() {
@@ -58,6 +58,7 @@ func (w *WebDirScanner) Scan() {
 		}()
 	}
 
+	// sending dirs to bust to jobs channel
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
@@ -66,15 +67,13 @@ func (w *WebDirScanner) Scan() {
 		}
 	}
 	close(jobs)
-
 	innerWg.Wait()
 }
 
 func main() {
 	webScanner := WebDirScanner{
-		url:      "http://example.com",
+		url:      "http://scanme.nmap.org",
 		wordlist: "test.txt",
-		wg:       &sync.WaitGroup{},
 	}
 	log.Printf("Starting gbrute on %s\n", webScanner.url)
 	webScanner.Scan()
