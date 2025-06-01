@@ -1,4 +1,5 @@
 use clap::Parser;
+mod gbrute;
 
 /// GBrute is a directory and web login bruteforcer
 #[derive(Parser, Debug)]
@@ -15,4 +16,5 @@ struct Args {
 
 fn main() {
     let args = Args::parse();
+    gbrute::dirbuster::bust_dirs(args.url, args.wordlist); 
 }
