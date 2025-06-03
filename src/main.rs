@@ -14,7 +14,9 @@ struct Args {
     wordlist: String,
 }
 
-fn main() {
+#[tokio::main]
+async fn main() {
     let args = Args::parse();
-    gbrute::dirbuster::bust_dirs(args.url, args.wordlist); 
+    println!("Starting GBrute at {}",chrono::Local::now().format("%Y-%m-%d %H:%M:%S") );
+    gbrute::dirbuster::bust_dirs(args.url, args.wordlist).await; 
 }

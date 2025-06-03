@@ -4,5 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+chrono = "0.4.41"
 clap = { version="4.5.39", features=["derive"] }
 reqwest = { version="0.12.18", features=["blocking"] }
+tokio = {version="1.45.1", features=["rt-multi-thread","macros"] }
