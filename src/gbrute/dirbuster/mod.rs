@@ -1,2 +1,2 @@
 pub mod bust;
-pub use bust::bust_dirs;
+pub use bust::DirBuster;

@@ -1,4 +1,5 @@
 use clap::Parser;
+use gbrute::dirbuster;
 mod gbrute;
 
 /// GBrute is a directory and web login bruteforcer
@@ -12,11 +13,35 @@ struct Args {
     /// Path to worlist
     #[arg(short,long)]
     wordlist: String,
+
+    #[arg(long,default_value="100")]
+    threads: u64,
+
+    #[arg(long,default_value="gbrute")]
+    user_agent: String,
+
+    #[arg(long,default_value="1000")]
+    timeout: u64,
+}
+
+fn print_entry(args: &Args) {
+    println!("Starting GBrute {} at {}",gbrute::version::GBRUTE_VERSION ,chrono::Local::now().format("%Y-%m-%d %H:%M:%S") );
+    println!("----------------------------------------------------------------------------------");
+    let menu = format!("\
+    [*] Url: {}\n\
+    [*] Threads: {}\n\
+    [*] Wordlist: {}\n\
+    [*] Ignored Statuscodes: 404\n\
+    [*] User-Agent: {}\n\
+    [*] Timeout: {}\n", args.url, args.threads, args.wordlist, args.user_agent, args.timeout);
+    println!("{menu}");
 }
 
 #[tokio::main]
 async fn main() {
     let args = Args::parse();
-    println!("Starting GBrute at {}",chrono::Local::now().format("%Y-%m-%d %H:%M:%S") );
-    gbrute::dirbuster::bust_dirs(args.url, args.wordlist).await.unwrap(); 
+
+    print_entry(&args);
+    let mut buster = dirbuster::DirBuster::new(args.url, args.wordlist, args.threads, args.timeout, args.user_agent);
+    buster.bust().await.unwrap();
 }
