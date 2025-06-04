@@ -1,13 +1,11 @@
-use reqwest::Client;
-use reqwest::StatusCode;
 use tokio::sync::Semaphore;
-use std::path::Path;
-use std::fs::File;
-use std::io::{prelude::*, BufReader};
-use std::sync::Arc;
+use tokio::io::{BufReader, AsyncBufReadExt};
+use tokio::fs::File;
+use tokio::task::JoinHandle;
+use std::{error::Error, sync::Arc};
 
-async fn bust_dir(url: &String, client: &Client, dir: &str){
-        let uri = url.to_owned() + dir;
+async fn bust_dir(url: &String, client: &reqwest::Client, dir: &str){
+    let uri = url.to_owned() + dir;
     let response_builder: reqwest::RequestBuilder = client.get(&uri);
     let response = match response_builder.send().await {
         Ok(resp) => resp,
@@ -15,49 +13,56 @@ async fn bust_dir(url: &String, client: &Client, dir: &str){
     };
 
 
-    let code: StatusCode = response.status();
-    if code.is_success() {
-           println!("{dir}:{code}");
-       }
+    let code: reqwest::StatusCode = response.status();
+    if code.is_success() || code.is_redirection() { 
+           println!("Busted: {dir}:{code}");
+    }
 }
 
 
-pub async fn bust_dirs(url: String, wordlist: String) {
-    let path = Path::new(&wordlist);
-    let file = match File::open(path) {
-        Ok(file) => file,
-        Err(why) => panic!("Could not open wordlist: {}",why),
-    }; 
-    let mut uri: String = url.clone();
+fn create_client(user_agent: &str, timeout: u64) -> Result<reqwest::Client, Box<dyn Error>> {
+    let headers: reqwest::header::HeaderMap = Default::default();
+    let client =
+        reqwest::ClientBuilder::new()
+        .user_agent(user_agent)
+        .default_headers(headers)
+        .timeout(std::time::Duration::from_millis(timeout))
+        .build()?;
+    Ok(client)
+}
+
+pub async fn bust_dirs(url: String, wordlist: String) -> Result<(), Box<dyn Error>> {
+   let mut uri: String = url.clone();
     if !uri.ends_with("/") {
-        uri += "/";
+        uri.push('/');
     }
 
-    let client = Arc::new(Client::new());
+    let client = create_client("gbrute", 750)?;
+    let use_cli = Arc::new(client);
     let semaphore = Arc::new(Semaphore::new(200));
 
-    let mut handles: Vec<tokio::task::JoinHandle<_>> = Vec::new();
-
+    
+    let file = File::open(wordlist).await?;
     let reader = BufReader::new(file);
-    for line in reader.lines() {
-        let st: String = match line {
-            Ok(line) => line,
-            Err(_) => continue,
-        };
-        let cli = Arc::clone(&client);
-        let sema = Arc::clone(&semaphore);
-        let new_uri = uri.clone();
+    let mut lines = reader.lines();
 
-        let handle = tokio::spawn(async move {
-            let _permit = match sema.acquire_owned().await {
-                Ok(permit) => permit,
-                Err(_e) => return,
-            };
-            bust_dir(&new_uri, &cli, st.as_str()).await; 
+    let mut handles: Vec<JoinHandle<_>> = Vec::new();
+
+    while let Some(line) = lines.next_line().await? {
+          
+        let cli_clone = Arc::clone(&use_cli);
+        let uri_clone = uri.clone();
+        let dir = line.clone();
+        let permit = semaphore.clone().acquire_owned().await.unwrap();
+
+        let handle: JoinHandle<()> = tokio::spawn( async move {
+            bust_dir(&uri_clone, &cli_clone, dir.as_str()).await;
+            drop(permit);
         });
         handles.push(handle);
     }
-    for h in handles {
-        let _ = h.await;
+    for i in handles {
+        let _ = i.await;
     }
+    Ok(())
 }

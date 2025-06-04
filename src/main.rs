@@ -18,5 +18,5 @@ struct Args {
 async fn main() {
     let args = Args::parse();
     println!("Starting GBrute at {}",chrono::Local::now().format("%Y-%m-%d %H:%M:%S") );
-    gbrute::dirbuster::bust_dirs(args.url, args.wordlist).await; 
+    gbrute::dirbuster::bust_dirs(args.url, args.wordlist).await.unwrap(); 
 }
