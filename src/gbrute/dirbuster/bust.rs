@@ -6,7 +6,7 @@ use std::{error::Error, sync::Arc};
 
 async fn bust_dir(url: &String, client: &reqwest::Client, dir: &str){
     let uri = url.to_owned() + dir;
-    let response_builder: reqwest::RequestBuilder = client.get(&uri);
+    let response_builder: reqwest::RequestBuilder = client.head(&uri);
     let response = match response_builder.send().await {
         Ok(resp) => resp,
         Err(_) => return,
@@ -27,6 +27,8 @@ fn create_client(user_agent: &str, timeout: u64) -> Result<reqwest::Client, Box<
         .user_agent(user_agent)
         .default_headers(headers)
         .timeout(std::time::Duration::from_millis(timeout))
+        .redirect(reqwest::redirect::Policy::none())
+        .pool_max_idle_per_host(200)
         .build()?;
     Ok(client)
 }
