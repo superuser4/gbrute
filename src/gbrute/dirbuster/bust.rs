@@ -1,8 +1,6 @@
-use tokio::sync::Semaphore;
-use tokio::io::{BufReader, AsyncBufReadExt};
-use tokio::fs::File;
-use tokio::task::JoinHandle;
+use futures::stream::StreamExt;
 use std::{error::Error, sync::Arc};
+use tokio::fs;
 
 async fn bust_dir(url: &String, client: &reqwest::Client, dir: &str){
     let uri = url.to_owned() + dir;
@@ -39,32 +37,22 @@ pub async fn bust_dirs(url: String, wordlist: String) -> Result<(), Box<dyn Erro
         uri.push('/');
     }
 
-    let client = create_client("gbrute", 750)?;
-    let use_cli = Arc::new(client);
-    let semaphore = Arc::new(Semaphore::new(200));
+    let use_cli = Arc::new(create_client("gbrute", 1000)?);
+    let cont = fs::read_to_string(wordlist).await?;
+    let dirs = cont.lines().map(String::from);
 
-    
-    let file = File::open(wordlist).await?;
-    let reader = BufReader::new(file);
-    let mut lines = reader.lines();
-
-    let mut handles: Vec<JoinHandle<_>> = Vec::new();
-
-    while let Some(line) = lines.next_line().await? {
-          
-        let cli_clone = Arc::clone(&use_cli);
-        let uri_clone = uri.clone();
-        let dir = line.clone();
-        let permit = semaphore.clone().acquire_owned().await.unwrap();
-
-        let handle: JoinHandle<()> = tokio::spawn( async move {
-            bust_dir(&uri_clone, &cli_clone, dir.as_str()).await;
-            drop(permit);
-        });
-        handles.push(handle);
-    }
-    for i in handles {
-        let _ = i.await;
-    }
+    futures::stream::iter(dirs)
+        .map( |dir| {
+           let client = Arc::clone(&use_cli); 
+           let uri = uri.clone();
+           async move {
+               bust_dir(&uri, &client, dir.as_str()).await;
+           }
+    })
+    .buffer_unordered(200)
+    .for_each(|_| async {})
+    .await;
+            
     Ok(())
+
 }
