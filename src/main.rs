@@ -22,6 +22,9 @@ struct Args {
 
     #[arg(long,default_value="1000")]
     timeout: u64,
+
+    #[arg(value_enum)]
+    mode: bust::DirBusterMode,
 }
 
 fn print_entry(args: &Args) {
@@ -42,6 +45,6 @@ async fn main() {
     let args = Args::parse();
 
     print_entry(&args);
-    let mut buster = bust::DirBuster::new(args.url, args.wordlist, args.threads, args.timeout, args.user_agent);
+    let mut buster = bust::DirBuster::new(args.url, args.wordlist, args.threads, args.timeout, args.user_agent,args.mode);
     buster.bust().await.unwrap();
 }
