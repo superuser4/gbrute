@@ -1,6 +1,6 @@
 use clap::Parser;
-use gbrute::dirbuster;
-mod gbrute;
+mod bust;
+mod version;
 
 /// GBrute is a directory and web login bruteforcer
 #[derive(Parser, Debug)]
@@ -25,7 +25,7 @@ struct Args {
 }
 
 fn print_entry(args: &Args) {
-    println!("Starting GBrute {} at {}",gbrute::version::GBRUTE_VERSION ,chrono::Local::now().format("%Y-%m-%d %H:%M:%S") );
+    println!("Starting GBrute {} at {}",version::GBRUTE_VERSION,chrono::Local::now().format("%Y-%m-%d %H:%M:%S") );
     println!("----------------------------------------------------------------------------------");
     let menu = format!("\
     [*] Url: {}\n\
@@ -42,6 +42,6 @@ async fn main() {
     let args = Args::parse();
 
     print_entry(&args);
-    let mut buster = dirbuster::DirBuster::new(args.url, args.wordlist, args.threads, args.timeout, args.user_agent);
+    let mut buster = bust::DirBuster::new(args.url, args.wordlist, args.threads, args.timeout, args.user_agent);
     buster.bust().await.unwrap();
 }
