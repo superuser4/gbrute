@@ -70,7 +70,7 @@ pub struct DirBuster {
                    DirBuster::bust_dir(url_clone, cli_clone, dir.as_str()).await;
                }
         })
-        .buffer_unordered(200)
+        .buffer_unordered(self.threads.try_into().unwrap())
         .for_each(|_| async {})
         .await;
                 
