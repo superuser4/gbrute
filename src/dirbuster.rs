@@ -16,7 +16,7 @@ impl DirBuster {
 
 #[async_trait]
 impl Buster for DirBuster {
-    async fn exec(word: String) -> Result<(), Box<dyn Error + Send>> {
+    async fn exec(&self, word: String) -> Result<(), Box<dyn Error + Send>> {
         println!("Running task for word {word}");
         Ok(())
     }
