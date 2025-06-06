@@ -60,7 +60,7 @@ async fn main() {
     match args.mode {
         BusterMode::Bust => {
             let mut buster = dirbuster::DirBuster::new(args.url, args.wordlist, args.threads, args.timeout, args.user_agent);
-            buster.run().await;
+            buster.run().await.expect("Failed to run DirBuster");
         }
         BusterMode::Domain => todo!(),
         BusterMode::Fuzz => todo!(),
