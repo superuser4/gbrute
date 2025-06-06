@@ -1,5 +1,8 @@
 use clap::Parser;
 mod bust;
+mod dirbuster;
+mod dns;
+mod fuzz;
 mod version;
 
 /// GBrute is a directory and web login bruteforcer
@@ -45,6 +48,9 @@ async fn main() {
     let args = Args::parse();
 
     print_entry(&args);
-    let mut buster = bust::DirBuster::new(args.url, args.wordlist, args.threads, args.timeout, args.user_agent,args.mode);
-    buster.bust().await.unwrap();
+    match args.mode {
+        bust::DirBusterMode::Bust => todo!(),
+        bust::DirBusterMode::Domain => todo!(),
+        bust::DirBusterMode::Fuzz => todo!(),
+    }
 }
