@@ -21,7 +21,7 @@ impl BusterEngine {
         Self { url, wordlist, threads, timeout, user_agent, http_client: None } 
     }
  
-    fn create_client(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+    fn create_client(&mut self) -> Result<(), Box<dyn Error>> {
         let headers: reqwest::header::HeaderMap = Default::default();
         let client =
             reqwest::ClientBuilder::new()
@@ -41,7 +41,7 @@ impl BusterEngine {
         Fut: Future<Output = Result<(), Box<dyn Error + Send>>> + Send + 'static,
     {
 
-        self.create_client().map_err(|e| Box::<dyn Error + Send>::from(e))?;
+        self.create_client()?;
         let content = fs::read_to_string(&self.wordlist).await?;
         let words = content.lines().map(str::to_owned).collect::<Vec<_>>();
 
