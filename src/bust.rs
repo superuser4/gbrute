@@ -1,7 +1,12 @@
 use std::{error::Error, sync::Arc};
 use futures::{StreamExt, TryStreamExt};
-use tokio::fs; 
+use async_trait::async_trait;
 
+#[async_trait]
+pub trait Buster: Send + Sync {
+    async fn run(&mut self) -> Result<(), Box<dyn Error + Send>>;
+    async fn exec(word: String) -> Result<(), Box<dyn Error + Send>>;
+}
 
 
 pub struct BusterEngine {
@@ -34,28 +39,38 @@ impl BusterEngine {
         self.http_client = Some(Arc::new(client));
         Ok(())
     }
-
-    pub async fn run<F, Fut>(&mut self, task: F) -> Result<(), Box<dyn Error + Send>>
-    where
-        F: Fn(String) -> Fut + Send + Sync + 'static,
-        Fut: Future<Output = Result<(), Box<dyn Error + Send>>> + Send + 'static,
-    {
-
-        self.create_client()?;
-        let content = fs::read_to_string(&self.wordlist).await?;
+    pub async fn run<B: Buster + ?Sized>(&mut self, buster: &B) -> Result<(), Box<dyn Error + Send>> {
+        // Create HTTP client if not already created
+        if self.http_client.is_none() {
+            self.create_client().map_err(|e| Box::new(e) as Box<dyn Error + Send>)?;
+        }
+        
+        let content = tokio::fs::read_to_string(&self.wordlist)
+            .await
+            .map_err(|e| Box::new(e) as Box<dyn Error + Send>)?;
+        
         let words = content.lines().map(str::to_owned).collect::<Vec<_>>();
-
+        
+        let client = self.http_client.as_ref().unwrap().clone();
+        let url = self.url.clone();
+        
         futures::stream::iter(words)
-            .map(Ok)
-            .try_for_each_concurrent(
-                self.threads as usize,
-                move |word| {
-                    async move {
-                        task(word).await
-                    }
-            },
-        )
-        .await?;
+            .map(|word| {
+                let buster = buster;
+                let client = client.clone();
+                let url = url.clone();
+                
+                async move {
+                    buster.exec(word).await?;
+                    // Or if you want to use the client/url:
+                    // client.get(format!("{}{}", url, word)).send().await?;
+                    Ok(())
+                }
+            })
+            .buffer_unordered(self.threads as usize)
+            .try_collect::<()>()
+            .await?;
+        
         Ok(())
     }
 }

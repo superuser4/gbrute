@@ -5,6 +5,7 @@ mod dns;
 mod fuzz;
 mod version;
 use clap::ValueEnum;
+use bust::Buster;
 
 #[derive(ValueEnum, Clone, Debug)]
 enum BusterMode {
