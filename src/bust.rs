@@ -9,6 +9,7 @@ pub trait Buster: Send + Sync {
 }
 
 
+#[derive(Clone)]
 pub struct BusterEngine {
     url: Arc<String>,
     wordlist: String,

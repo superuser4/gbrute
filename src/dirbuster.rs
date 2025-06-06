@@ -3,6 +3,7 @@ use crate::bust::BusterEngine;
 use crate::bust::Buster;
 use async_trait::async_trait;
 
+#[derive(Clone)]
 pub struct DirBuster {
     engine: BusterEngine,
 }
@@ -22,7 +23,8 @@ impl Buster for DirBuster {
     }
 
     async fn run(&mut self) -> Result<(), Box<dyn Error + Send>> {
-        self.engine.run(self).await;
+        let this = self.clone();
+        self.engine.run(&this).await;
         Ok(())
     }
 }
