@@ -1,10 +1,17 @@
 use clap::Parser;
-use bust::Buster;
 mod bust;
 mod dirbuster;
 mod dns;
 mod fuzz;
 mod version;
+use clap::ValueEnum;
+
+#[derive(ValueEnum, Clone, Debug)]
+enum BusterMode {
+    Bust,
+    Domain,
+    Fuzz,
+}
 
 /// GBrute is a directory and web login bruteforcer
 #[derive(Parser, Debug)]
