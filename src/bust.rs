@@ -40,7 +40,7 @@ impl BusterEngine {
             .timeout(std::time::Duration::from_millis(timeout_s))
             .redirect(reqwest::redirect::Policy::none())
             .pool_max_idle_per_host(threads as usize)
-            .build()?;
+            .build().expect("Http client creation failed");
         Ok(client)
     }
     pub async fn run<B: Buster + ?Sized>(&mut self, buster: &B) -> Result<(), Box<dyn Error + Send>> {

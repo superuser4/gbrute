@@ -9,7 +9,7 @@ pub struct DirBuster {
 
 impl DirBuster {
     pub fn new(url: String, wordlist: String, threads: u64, timeout: u64, user_agent: String) -> Self {
-        let engine: BusterEngine = BusterEngine::new(url, wordlist, threads, timeout, user_agent);
+        let engine: BusterEngine = BusterEngine::new(url, wordlist, threads, timeout, user_agent).expect("Buster Engine creation failed");
         Self { engine }
     }   
 }
