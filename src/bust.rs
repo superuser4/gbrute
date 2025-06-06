@@ -17,14 +17,14 @@ pub enum DirBusterMode {
 #[async_trait]
 pub trait Buster {
     fn url(&self) -> Arc<String>;
-    fn wordlist(&self) -> &str;
+    fn wordlist(&self) -> String; 
     fn http_client(&self) -> Arc<reqwest::Client>;
-    fn threads(&self) -> usize;
+    fn threads(&self) -> u64;
     fn user_agent(&self) -> String;
-    fn timeout(&self) -> usize;
+    fn timeout(&self) -> u64;
 
     fn bust_fn(
-        &self,
+        &mut self,
     ) -> Box<
         dyn Fn(Arc<String>, Arc<reqwest::Client>, String) -> Pin<Box<dyn Future<Output = ()> + Send>>
             + Send
@@ -48,10 +48,9 @@ pub trait Buster {
                     bust_fn(url, client, word).await;
                 }
             })
-            .buffer_unordered(self.threads())
+            .buffer_unordered(self.threads() as usize) 
             .for_each(|_| async {})
             .await;
-
         Ok(())
     }
 }

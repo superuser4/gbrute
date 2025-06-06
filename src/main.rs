@@ -1,4 +1,5 @@
 use clap::Parser;
+use bust::Buster;
 mod bust;
 mod dirbuster;
 mod dns;
@@ -49,7 +50,10 @@ async fn main() {
 
     print_entry(&args);
     match args.mode {
-        bust::DirBusterMode::Bust => todo!(),
+        bust::DirBusterMode::Bust => {
+            let buster = dirbuster::DirBuster::new(args.url, args.wordlist, args.threads, args.timeout, args.user_agent);
+            buster.run();
+        }
         bust::DirBusterMode::Domain => todo!(),
         bust::DirBusterMode::Fuzz => todo!(),
     }
