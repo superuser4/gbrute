@@ -1,11 +1,9 @@
+use std::{pin::Pin, sync::Arc};
+use futures::StreamExt;
+
 use async_trait::async_trait;
-use std::sync::Arc;
-use std::future::Future;
-use std::pin::Pin;
-use std::error::Error;
-use tokio::fs;
-use futures::stream::StreamExt;
-use clap::ValueEnum; 
+use clap::ValueEnum;
+use tokio::fs; 
 
 #[derive(ValueEnum, Clone, Debug)]
 pub enum DirBusterMode {
@@ -31,7 +29,7 @@ pub trait Buster {
             + Sync,
             >;
 
-    async fn run(&self) -> Result<(), Box<dyn Error>> {
+    async fn run(&mut self) -> Result<(), Box<dyn std::error::Error>> {
         let content = fs::read_to_string(self.wordlist()).await?;
         let words = content.lines().map(str::to_owned).collect::<Vec<_>>();
 

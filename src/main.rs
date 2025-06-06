@@ -51,7 +51,7 @@ async fn main() {
     print_entry(&args);
     match args.mode {
         bust::DirBusterMode::Bust => {
-            let buster = dirbuster::DirBuster::new(args.url, args.wordlist, args.threads, args.timeout, args.user_agent);
+            let mut buster = dirbuster::DirBuster::new(args.url, args.wordlist, args.threads, args.timeout, args.user_agent);
             buster.run();
         }
         bust::DirBusterMode::Domain => todo!(),
