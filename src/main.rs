@@ -35,7 +35,7 @@ struct Args {
     timeout: u64,
 
     #[arg(value_enum)]
-    mode: bust::DirBusterMode,
+    mode: BusterMode,
 }
 
 fn print_entry(args: &Args) {
@@ -57,11 +57,11 @@ async fn main() {
 
     print_entry(&args);
     match args.mode {
-        bust::DirBusterMode::Bust => {
+        BusterMode::Bust => {
             let mut buster = dirbuster::DirBuster::new(args.url, args.wordlist, args.threads, args.timeout, args.user_agent);
-            buster.run();
+            buster.run().await;
         }
-        bust::DirBusterMode::Domain => todo!(),
-        bust::DirBusterMode::Fuzz => todo!(),
+        BusterMode::Domain => todo!(),
+        BusterMode::Fuzz => todo!(),
     }
 }

@@ -1,5 +1,5 @@
-use std::sync::Arc;
-use futures::StreamExt;
+use std::{error::Error, sync::Arc};
+use futures::{StreamExt, TryStreamExt};
 use tokio::fs; 
 
 
@@ -35,26 +35,27 @@ impl BusterEngine {
         Ok(())
     }
 
-    async fn run(&self) -> Result<(), Box<dyn std::error::Error>> {
-        let content = fs::read_to_string(self.wordlist).await?;
+    pub async fn run<F, Fut>(&mut self, task: F) -> Result<(), Box<dyn Error + Send>>
+    where
+        F: Fn(String) -> Fut + Send + Sync + 'static,
+        Fut: Future<Output = Result<(), Box<dyn Error + Send>>> + Send + 'static,
+    {
+
+        self.create_client().map_err(|e| Box::<dyn Error + Send>::from(e))?;
+        let content = fs::read_to_string(&self.wordlist).await?;
         let words = content.lines().map(str::to_owned).collect::<Vec<_>>();
 
-        let bust_fn = self.bust_fn(); 
-        let bust_fn = Arc::new(bust_fn); 
-
         futures::stream::iter(words)
-            .map(|word| {
-                let url = Arc::clone(&self.url);
-                let client = Arc::clone(&self.http_client);
-                let bust_fn = Arc::clone(&bust_fn);
-
-                async move {
-                    bust_fn(url, client, word).await;
-                }
-            })
-            .buffer_unordered(self.threads as usize) 
-            .for_each(|_| async {})
-            .await;
+            .map(Ok)
+            .try_for_each_concurrent(
+                self.threads as usize,
+                move |word| {
+                    async move {
+                        task(word).await
+                    }
+            },
+        )
+        .await?;
         Ok(())
     }
 }
