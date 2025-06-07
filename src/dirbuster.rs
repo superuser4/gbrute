@@ -18,7 +18,26 @@ impl DirBuster {
 #[async_trait]
 impl Buster for DirBuster {
     async fn exec(&self, word: String) -> Result<(), Box<dyn Error + Send>> {
-        println!("Running task for word {word}");
+        let mut new_uri = self.engine.url.to_string();
+        if !new_uri.ends_with('/') {
+            new_uri.push('/');
+        }
+        new_uri.push_str(&word);
+
+        if let Some(resp) = self
+            .engine
+            .http_client
+            .head(new_uri)
+            .send()
+            .await
+            .ok()
+        {
+
+            if !resp.status().is_client_error() {
+                println!("Busted: /{word}");
+            }
+        }
+
         Ok(())
     }
 

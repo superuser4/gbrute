@@ -11,12 +11,12 @@ pub trait Buster: Send + Sync {
 
 #[derive(Clone)]
 pub struct BusterEngine {
-    url: Arc<String>,
+    pub url: Arc<String>,
     wordlist: String,
     threads: u64,
     timeout: u64,
     user_agent: String,
-    http_client: Arc<reqwest::Client>,
+    pub http_client: Arc<reqwest::Client>,
 }
 
 
