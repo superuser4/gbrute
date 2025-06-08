@@ -1,3 +1,5 @@
+use std::process::exit;
+
 use clap::Parser;
 mod bust;
 mod dirbuster;
@@ -59,8 +61,8 @@ async fn main() {
     print_entry(&args);
     match args.mode {
         BusterMode::Dir => {
-            let mut buster = dirbuster::DirBuster::new(args.url, args.wordlist, args.threads, args.timeout, args.user_agent);
-            buster.run().await.expect("Failed to run DirBuster");
+            let buster = dirbuster::DirBuster::new(args.url, args.wordlist, args.threads, args.timeout, args.user_agent); 
+            let _ = buster.expect("Failed to run dirbuster").run().await;
         }
         BusterMode::Dns => todo!(),
         BusterMode::Fuzz => todo!(),
