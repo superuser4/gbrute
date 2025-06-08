@@ -31,9 +31,9 @@ impl Buster for DirBuster {
             .send()
             .await
         {
-
-            if !resp.status().is_client_error() {
-                println!("Busted: /{word}");
+            let code = resp.status();
+            if !code.is_client_error() {
+                println!("Busted: /{word} -> {code}");
             }
         }
     }

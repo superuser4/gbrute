@@ -8,6 +8,7 @@ use clap::ValueEnum;
 use bust::Buster;
 use dirbuster::DirBuster;
 use dns::DnsBuster;
+use fuzz::FuzzBuster;
 
 #[derive(ValueEnum, Clone, Debug)]
 enum BusterMode {
@@ -68,6 +69,9 @@ async fn main() {
             let mut dnsbuster = DnsBuster::new(args.url, args.wordlist, args.threads, args.timeout, args.user_agent);
             let _ = dnsbuster.run().await;
         }
-        BusterMode::Fuzz => todo!(),
+        BusterMode::Fuzz => {
+            let mut fuzzbuster = FuzzBuster::new(args.url, args.wordlist, args.threads, args.timeout, args.user_agent);
+            let _ = fuzzbuster.run().await;
+        }
     }
 }
