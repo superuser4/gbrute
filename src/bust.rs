@@ -5,7 +5,7 @@ use async_trait::async_trait;
 #[async_trait]
 pub trait Buster: Send + Sync {
     async fn run(&mut self) -> Result<(), Box<dyn Error + Send>>;
-    async fn exec(&self, word: String) -> Result<(), Box<dyn Error + Send>>;
+    async fn exec(&self, word: String); 
 }
 
 
@@ -28,17 +28,14 @@ impl BusterEngine {
  
     fn create_client(user_agent: &String, timeout_s: u64, threads: u64) -> Result<reqwest::Client, reqwest::Error> {
         let headers: reqwest::header::HeaderMap = Default::default();
-        let client = match
+        let client = 
             reqwest::ClientBuilder::new()
             .user_agent(user_agent)
             .default_headers(headers)
             .timeout(std::time::Duration::from_millis(timeout_s))
             .redirect(reqwest::redirect::Policy::none())
             .pool_max_idle_per_host(threads as usize)
-            .build() {
-                Ok(c) => c,
-                Err(e) => return Err(e),
-            };
+            .build()?;
         Ok(client)
     }
     pub async fn run<B: Buster + ?Sized>(&mut self, buster: &B) -> Result<(), Box<dyn Error + Send>> {
@@ -49,7 +46,7 @@ impl BusterEngine {
         futures::stream::iter(words)
             .map(|word| {
                 async move {
-                    buster.exec(word).await?;
+                    buster.exec(word).await;
                     Ok(())
                 }
             })
