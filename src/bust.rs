@@ -20,13 +20,13 @@ pub struct BusterEngine {
 
 impl BusterEngine {
 
-    pub fn new(url: String, wordlist: String, threads: u64, timeout: u64, user_agent: String) -> Result<Self, Box<dyn Error + Send>> {
+    pub fn new(url: String, wordlist: String, threads: u64, timeout: u64, user_agent: String) -> Result<Self, reqwest::Error> {
         let url = Arc::new(url);
         let http_client = Arc::new(BusterEngine::create_client(&user_agent, timeout, threads)?); 
         Ok(Self { url, wordlist, threads, http_client})
     }
  
-    fn create_client(user_agent: &String, timeout_s: u64, threads: u64) -> Result<reqwest::Client, Box<dyn Error + Send>> {
+    fn create_client(user_agent: &String, timeout_s: u64, threads: u64) -> Result<reqwest::Client, reqwest::Error> {
         let headers: reqwest::header::HeaderMap = Default::default();
         let client = match
             reqwest::ClientBuilder::new()
@@ -37,7 +37,7 @@ impl BusterEngine {
             .pool_max_idle_per_host(threads as usize)
             .build() {
                 Ok(c) => c,
-                Err(e) => return Err(Box::new(e) as Box<dyn Error + Send>),
+                Err(e) => return Err(e),
             };
         Ok(client)
     }
