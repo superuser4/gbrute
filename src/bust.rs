@@ -14,8 +14,6 @@ pub struct BusterEngine {
     pub url: Arc<String>,
     wordlist: String,
     threads: u64,
-    timeout: u64,
-    user_agent: String,
     pub http_client: Arc<reqwest::Client>,
 }
 
@@ -25,7 +23,7 @@ impl BusterEngine {
     pub fn new(url: String, wordlist: String, threads: u64, timeout: u64, user_agent: String) -> Result<Self, Box<dyn Error + Send>> {
         let url = Arc::new(url);
         let http_client = Arc::new(BusterEngine::create_client(&user_agent, timeout, threads)?); 
-        Ok(Self { url, wordlist, threads, timeout, user_agent, http_client})
+        Ok(Self { url, wordlist, threads, http_client})
     }
  
     fn create_client(user_agent: &String, timeout_s: u64, threads: u64) -> Result<reqwest::Client, Box<dyn Error + Send>> {
@@ -44,7 +42,6 @@ impl BusterEngine {
         let content = tokio::fs::read_to_string(&self.wordlist)
             .await
             .map_err(|e| Box::new(e) as Box<dyn Error + Send>)?;
-        
         let words = content.lines().map(str::to_owned).collect::<Vec<_>>();
         futures::stream::iter(words)
             .map(|word| {

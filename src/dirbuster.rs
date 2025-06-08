@@ -42,8 +42,10 @@ impl Buster for DirBuster {
 
     async fn run(&mut self) -> Result<(), Box<dyn Error + Send>> {
         let this = self.clone();
-        let _ = self.engine.run(&this).await;
-        Ok(())
+        match self.engine.run(&this).await {
+            Ok(_) => return Ok(()),
+            Err(e) => return Err(e),
+        }
     }
 }
 
