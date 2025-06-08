@@ -9,8 +9,8 @@ use bust::Buster;
 
 #[derive(ValueEnum, Clone, Debug)]
 enum BusterMode {
-    Bust,
-    Domain,
+    Dir,
+    Dns,
     Fuzz,
 }
 
@@ -58,11 +58,11 @@ async fn main() {
 
     print_entry(&args);
     match args.mode {
-        BusterMode::Bust => {
+        BusterMode::Dir => {
             let mut buster = dirbuster::DirBuster::new(args.url, args.wordlist, args.threads, args.timeout, args.user_agent);
             buster.run().await.expect("Failed to run DirBuster");
         }
-        BusterMode::Domain => todo!(),
+        BusterMode::Dns => todo!(),
         BusterMode::Fuzz => todo!(),
     }
 }

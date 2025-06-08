@@ -24,13 +24,12 @@ impl Buster for DirBuster {
         }
         new_uri.push_str(&word);
 
-        if let Some(resp) = self
+        if let Ok(resp) = self
             .engine
             .http_client
             .head(new_uri)
             .send()
             .await
-            .ok()
         {
 
             if !resp.status().is_client_error() {
