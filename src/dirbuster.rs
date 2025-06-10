@@ -34,7 +34,8 @@ impl Buster for DirBuster {
         {
             let code = resp.status();
             if !code.is_client_error() {
-                println!("Busted: /{word} -> {code}");
+                let msg = format!("Busted: /{word} -> {code}");
+                bar.println(msg);
             }
         }
         bar.inc(1);
