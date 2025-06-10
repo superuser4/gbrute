@@ -1,11 +1,12 @@
 use std::{error::Error, sync::Arc};
 use futures::{StreamExt, TryStreamExt};
 use async_trait::async_trait;
+use indicatif::ProgressBar;
 
 #[async_trait]
 pub trait Buster: Send + Sync {
     async fn run(&mut self) -> Result<(), Box<dyn Error + Send>>;
-    async fn exec(&self, word: String); 
+    async fn exec(&self, word: String, bar: ProgressBar); 
 }
 
 
@@ -41,12 +42,14 @@ impl BusterEngine {
     pub async fn run<B: Buster + ?Sized>(&mut self, buster: &B) -> Result<(), Box<dyn Error + Send>> {
         let content = tokio::fs::read_to_string(&self.wordlist)
             .await
-            .map_err(|e| Box::new(e) as Box<dyn Error + Send>)?;
+            .map_err(|e| Box::new(e) as Box<dyn Error + Send>)?; 
         let words = content.lines().map(str::to_owned).collect::<Vec<_>>();
+        let bar = ProgressBar::new(words.len() as u64);
         futures::stream::iter(words)
             .map(|word| {
+                let bar = bar.clone();
                 async move {
-                    buster.exec(word).await;
+                    buster.exec(word, bar).await;
                     Ok(())
                 }
             })

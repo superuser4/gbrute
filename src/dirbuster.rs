@@ -2,6 +2,7 @@ use std::error::Error;
 use crate::bust::BusterEngine;
 use crate::bust::Buster;
 use async_trait::async_trait;
+use indicatif::ProgressBar;
 
 #[derive(Clone)]
 pub struct DirBuster {
@@ -17,7 +18,7 @@ impl DirBuster {
 
 #[async_trait]
 impl Buster for DirBuster {
-    async fn exec(&self, word: String) {
+    async fn exec(&self, word: String, bar: ProgressBar) {
         let mut new_uri = self.engine.url.to_string();
         if !new_uri.ends_with('/') {
             new_uri.push('/');
@@ -36,6 +37,7 @@ impl Buster for DirBuster {
                 println!("Busted: /{word} -> {code}");
             }
         }
+        bar.inc(1);
     }
 
     async fn run(&mut self) -> Result<(), Box<dyn Error + Send>> {

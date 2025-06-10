@@ -1,5 +1,6 @@
 use std::error::Error;
 use async_trait::async_trait;
+use indicatif::ProgressBar;
 use crate::bust::{Buster, BusterEngine};
 
 #[derive(Clone)]
@@ -23,7 +24,7 @@ pub struct DnsBuster {
             Err(e) => return Err(e),
         }
     }
-    async fn exec(&self, word: String) {
+    async fn exec(&self, word: String, bar: ProgressBar) {
         let split_domain: Vec<&str> = self.engine.url.split("://").collect();
         let new_domain: String = split_domain[0].to_string() + "://" + &word + "." + split_domain[1];
         

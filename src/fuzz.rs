@@ -1,5 +1,6 @@
 use crate::bust::{Buster, BusterEngine};
 use async_trait::async_trait;
+use indicatif::ProgressBar;
 use std::{error::Error, process::exit};
 
 
@@ -24,7 +25,7 @@ impl FuzzBuster {
             Err(e) => return Err(e),
         }
     }
-    async fn exec(&self, word: String) {
+    async fn exec(&self, word: String, bar: ProgressBar) {
         if !self.engine.url.contains("FUZZ") {
             println!("Error: <FUZZ> not found in the url");
             exit(1);
