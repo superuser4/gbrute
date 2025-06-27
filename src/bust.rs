@@ -20,7 +20,6 @@ pub struct BusterEngine {
 
 
 impl BusterEngine {
-
     pub fn new(url: String, wordlist: String, threads: u64, timeout: u64, user_agent: String) -> Result<Self, reqwest::Error> {
         let url = Arc::new(url);
         let http_client = Arc::new(BusterEngine::create_client(&user_agent, timeout, threads)?); 

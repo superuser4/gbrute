@@ -42,16 +42,26 @@ struct Args {
     mode: BusterMode,
 }
 
-fn print_entry(args: &Args) {
+fn print_entry(args: &Args, mode: &BusterMode) {
     println!("Starting GBrute {} at {}",version::GBRUTE_VERSION,chrono::Local::now().format("%Y-%m-%d %H:%M:%S") );
     println!("----------------------------------------------------------------------------------");
-    let menu = format!("\
+
+    let mut menu = format!("\
     [*] Url: {}\n\
     [*] Threads: {}\n\
     [*] Wordlist: {}\n\
-    [*] Ignored Statuscodes: 404\n\
-    [*] User-Agent: {}\n\
-    [*] Timeout: {}\n", args.url, args.threads, args.wordlist, args.user_agent, args.timeout);
+    [*] Timeout: {}\n", args.url, args.threads, args.wordlist, args.timeout);
+
+    match mode {
+        BusterMode::Dir => {
+            menu += "[*] Ignored Status Codes:\n";
+            menu += format!("[*] User-Agent: {}\n", args.user_agent).as_str();
+        }
+        BusterMode::Dns => {
+        }
+        BusterMode::Fuzz => {
+        }
+    }
     println!("{menu}");
 }
 
@@ -59,7 +69,7 @@ fn print_entry(args: &Args) {
 async fn main() {
     let args = Args::parse();
 
-    print_entry(&args);
+    print_entry(&args, &args.mode);
     match args.mode {
         BusterMode::Dir => {
             let buster = DirBuster::new(args.url, args.wordlist, args.threads, args.timeout, args.user_agent); 

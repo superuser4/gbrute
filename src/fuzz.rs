@@ -44,6 +44,6 @@ impl FuzzBuster {
                 println!("Busted: /{} -> {}", &payload, code);
             }
         }
- 
+        bar.inc(1); 
     }
  }
