@@ -27,7 +27,7 @@ pub struct DnsBuster {
     }
     async fn exec(&self, word: String, bar: ProgressBar) {
         let split_domain: Vec<&str> = self.engine.url.split("://").collect();
-        let new_domain: String = split_domain[0].to_string() + "://" + &word + "." + split_domain[1];
+        let new_domain: String = word + "." + split_domain[1];
 
         let resolver = Resolver::builder_with_config(
             ResolverConfig::default(), 
@@ -36,8 +36,19 @@ pub struct DnsBuster {
         match resolver.lookup_ip(&new_domain).await {
             Ok(lookup) => {
                 for ip in lookup.iter() {
-                    let msg: String = format!("Resolved {} -> {}", &new_domain, ip);
-                    bar.println(msg);
+                    if let Ok(resp) = self
+                        .engine
+                        .http_client
+                        .head(split_domain[0].to_owned() + "://" + &new_domain)
+                        .send()
+                        .await
+                    {
+                        let code = resp.status();
+                        if !code.is_server_error() {
+                            let msg: String = format!("Resolved {} -> {}", &new_domain, ip);
+                            bar.println(msg);
+                        }
+                    }
                 }
             }
             Err(_e) => {}
