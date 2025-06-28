@@ -1,6 +1,7 @@
 use std::{error::Error, sync::Arc};
 use futures::{StreamExt, TryStreamExt};
 use async_trait::async_trait;
+use hickory_resolver::{name_server::GenericConnector, Resolver};
 use indicatif::ProgressBar;
 
 #[async_trait]
@@ -16,6 +17,7 @@ pub struct BusterEngine {
     wordlist: String,
     threads: u64,
     pub http_client: Arc<reqwest::Client>,
+    //pub resolver: Option<Resolver<>>,
 }
 
 
@@ -23,9 +25,9 @@ impl BusterEngine {
     pub fn new(url: String, wordlist: String, threads: u64, timeout: u64, user_agent: String) -> Result<Self, reqwest::Error> {
         let url = Arc::new(url);
         let http_client = Arc::new(BusterEngine::create_client(&user_agent, timeout, threads)?); 
-        Ok(Self { url, wordlist, threads, http_client})
+        Ok(Self { url, wordlist, threads, http_client,  })
     }
- 
+    //fn create_resolver() {} 
     fn create_client(user_agent: &String, timeout_s: u64, threads: u64) -> Result<reqwest::Client, reqwest::Error> {
         let headers: reqwest::header::HeaderMap = Default::default();
         let client = 
