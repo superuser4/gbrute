@@ -1,8 +1,7 @@
 use std::{error::Error, sync::Arc};
 use futures::{StreamExt, TryStreamExt};
 use async_trait::async_trait;
-use hickory_resolver::{name_server::GenericConnector, Resolver};
-use indicatif::ProgressBar;
+use indicatif::{ProgressBar, ProgressStyle};
 
 #[async_trait]
 pub trait Buster: Send + Sync {
@@ -46,6 +45,10 @@ impl BusterEngine {
             .map_err(|e| Box::new(e) as Box<dyn Error + Send>)?; 
         let words = content.lines().map(str::to_owned).collect::<Vec<_>>();
         let bar = ProgressBar::new(words.len() as u64);
+        bar.set_style(ProgressStyle::with_template("[{elapsed_precise}] {bar:40.cyan/blue} {pos:>7}/{len:7} {msg}")
+            .unwrap()
+            .progress_chars("##-"));
+        
         futures::stream::iter(words)
             .map(|word| {
                 let bar = bar.clone();
