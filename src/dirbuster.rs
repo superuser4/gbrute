@@ -1,4 +1,5 @@
 use std::error::Error;
+use std::process::exit;
 use crate::bust::BusterEngine;
 use crate::bust::Buster;
 use async_trait::async_trait;
@@ -27,23 +28,29 @@ impl Buster for DirBuster {
         }
         new_uri.push_str(&word);
 
-        if let Ok(resp) = self
+        match self
             .engine
             .http_client
             .head(new_uri)
             .send()
-            .await
-        {
-            let code = resp.status().as_u16();
-            if !self.status_code.contains(&code) {
-                let msg = format!("Busted: /{word} -> {code}");
-                bar.println(msg);
+            .await {
+                Ok(resp) => {
+                    let code = resp.status().as_u16();
+                    if !self.status_code.contains(&code) {
+                        let msg = format!("Busted: /{word} -> {code}");
+                        bar.println(msg);
 
-                if self.recursive {
-                    todo!();
-                }
-            }
+                        if self.recursive {
+                            todo!();
+                        }
+                    }
+                },
+                Err(resp) => {
+                    eprintln!("Error: {}", resp);
+                    exit(1);
+                },
         }
+        
         bar.inc(1);
     }
 
