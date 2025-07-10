@@ -29,20 +29,29 @@ struct Args {
     #[arg(short,long)]
     wordlist: String,
 
+    // Amount of light threads to use
     #[arg(long,default_value="100")]
     threads: u64,
 
+    // User agent for Http headers
     #[arg(long,default_value="gbrute 0.1")]
     user_agent: String,
 
+    // timeout per connection in milliseconds
     #[arg(long,default_value="1000")]
     timeout: u64,
 
+    // Specify mode to bust
     #[arg(value_enum)]
     mode: BusterMode,
 
+    // Blacklisted status codes
     #[arg(long, default_value="404", num_args=1.., value_delimiter=',')]
     status_code: Vec<u16>,
+
+    // Enables recursive busting either for dir or dns mode
+    #[arg(long)]
+    recursive: bool,
 }
 
 fn print_entry(args: &Args, mode: &BusterMode) {
@@ -75,16 +84,16 @@ async fn main() {
     print_entry(&args, &args.mode);
     match args.mode {
         BusterMode::Dir => {
-            let buster = DirBuster::new(args.url, args.wordlist, args.threads, args.timeout, args.user_agent, args.status_code);
+            let buster = DirBuster::new(args.url, args.wordlist, args.threads, args.timeout, args.user_agent, args.status_code, args.recursive);
             let _ = buster.expect("Failed to run dirbuster").run().await;
         }
         BusterMode::Dns => {
-            let mut dnsbuster = DnsBuster::new(args.url, args.wordlist, args.threads, args.timeout, args.user_agent);
-            let _ = dnsbuster.run().await;
+            let dnsbuster = DnsBuster::new(args.url, args.wordlist, args.threads, args.timeout, args.user_agent, args.recursive);
+            let _ = dnsbuster.expect("Failed to run dnsbuster").run().await;
         }
         BusterMode::Fuzz => {
-            let mut fuzzbuster = FuzzBuster::new(args.url, args.wordlist, args.threads, args.timeout, args.user_agent);
-            let _ = fuzzbuster.run().await;
+            let fuzzbuster = FuzzBuster::new(args.url, args.wordlist, args.threads, args.timeout, args.user_agent);
+            let _ = fuzzbuster.expect("Failed to run fuzzer").run().await;
         }
     }
 }

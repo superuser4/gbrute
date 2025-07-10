@@ -23,7 +23,7 @@ impl BusterEngine {
     pub fn new(url: String, wordlist: String, threads: u64, timeout: u64, user_agent: String) -> Result<Self, reqwest::Error> {
         let url = Arc::new(url);
         let http_client = Arc::new(BusterEngine::create_client(&user_agent, timeout, threads)?); 
-        Ok(Self { url, wordlist, threads, http_client,  })
+        Ok(Self { url, wordlist, threads, http_client })
     }
     fn create_client(user_agent: &String, timeout_s: u64, threads: u64) -> Result<reqwest::Client, reqwest::Error> {
         let headers: reqwest::header::HeaderMap = Default::default();

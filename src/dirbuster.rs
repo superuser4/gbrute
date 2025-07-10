@@ -8,12 +8,13 @@ use indicatif::ProgressBar;
 pub struct DirBuster {
     engine: BusterEngine,
     status_code: Vec<u16>,
+    recursive: bool,
 }
 
 impl DirBuster {
-    pub fn new(url: String, wordlist: String, threads: u64, timeout: u64, user_agent: String, status_code: Vec<u16>) -> Result<Self, reqwest::Error> {
+    pub fn new(url: String, wordlist: String, threads: u64, timeout: u64, user_agent: String, status_code: Vec<u16>, recursive: bool) -> Result<Self, reqwest::Error> {
         let engine: BusterEngine = BusterEngine::new(url, wordlist, threads, timeout, user_agent)?; 
-        Ok(Self { engine , status_code})
+        Ok(Self { engine , status_code, recursive})
     }   
 }
 
@@ -37,6 +38,10 @@ impl Buster for DirBuster {
             if !self.status_code.contains(&code) {
                 let msg = format!("Busted: /{word} -> {code}");
                 bar.println(msg);
+
+                if self.recursive {
+                    todo!();
+                }
             }
         }
         bar.inc(1);

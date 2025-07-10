@@ -10,9 +10,9 @@ pub struct FuzzBuster {
 }
 
 impl FuzzBuster {
-  pub fn new(url: String, wordlist: String, threads: u64, timeout: u64, user_agent: String) -> Self {
-        let engine: BusterEngine = BusterEngine::new(url, wordlist, threads, timeout, user_agent).expect("Buster Engine creation failed");
-        Self { engine }
+  pub fn new(url: String, wordlist: String, threads: u64, timeout: u64, user_agent: String) -> Result<Self, reqwest::Error> {
+        let engine: BusterEngine = BusterEngine::new(url, wordlist, threads, timeout, user_agent)?;
+        Ok(Self { engine })
     }   
 }
 
