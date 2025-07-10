@@ -1,4 +1,4 @@
-use std::{error::Error, sync::Arc};
+use std::{error::Error, process::exit, sync::Arc};
 use futures::{StreamExt, TryStreamExt};
 use async_trait::async_trait;
 use indicatif::{ProgressBar, ProgressStyle};
@@ -38,9 +38,10 @@ impl BusterEngine {
         Ok(client)
     }
     pub async fn run<B: Buster + ?Sized>(&mut self, buster: &B) -> Result<(), Box<dyn Error + Send>> {
-        let content = tokio::fs::read_to_string(&self.wordlist)
-            .await
-            .map_err(|e| Box::new(e) as Box<dyn Error + Send>)?; 
+        let content = tokio::fs::read_to_string(&self.wordlist).await.unwrap_or_else(|e| {
+            eprintln!("Error loading wordlist: {}", e);
+            exit(1);
+        });
         let words = content.lines().map(str::to_owned).collect::<Vec<_>>();
         let bar = ProgressBar::new(words.len() as u64);
         bar.set_style(ProgressStyle::with_template("[{elapsed_precise}] {bar:40.cyan/blue} {pos:>7}/{len:7} {msg}")
