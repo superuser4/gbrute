@@ -17,7 +17,7 @@ enum BusterMode {
     Fuzz,
 }
 
-/// GBrute is a directory and web login bruteforcer
+/// GBrute is a web directory, dns, and parameter brute-forcer
 #[derive(Parser, Debug)]
 #[command(version="0.1.0", about, long_about = None)]
 struct Args {
@@ -32,7 +32,7 @@ struct Args {
     #[arg(long,default_value="100")]
     threads: u64,
 
-    #[arg(long,default_value="gbrute")]
+    #[arg(long,default_value="gbrute 0.1")]
     user_agent: String,
 
     #[arg(long,default_value="1000")]
@@ -40,6 +40,9 @@ struct Args {
 
     #[arg(value_enum)]
     mode: BusterMode,
+
+    #[arg(long, default_value="404", num_args=1.., value_delimiter=',')]
+    status_code: Vec<u16>,
 }
 
 fn print_entry(args: &Args, mode: &BusterMode) {
@@ -54,7 +57,7 @@ fn print_entry(args: &Args, mode: &BusterMode) {
 
     match mode {
         BusterMode::Dir => {
-            menu += "[*] Ignored Status Codes:\n";
+            menu += format!("[*] Ignored Status Codes: {:?} \n", args.status_code).as_str();
             menu += format!("[*] User-Agent: {}\n", args.user_agent).as_str();
         }
         BusterMode::Dns => {
@@ -72,7 +75,7 @@ async fn main() {
     print_entry(&args, &args.mode);
     match args.mode {
         BusterMode::Dir => {
-            let buster = DirBuster::new(args.url, args.wordlist, args.threads, args.timeout, args.user_agent); 
+            let buster = DirBuster::new(args.url, args.wordlist, args.threads, args.timeout, args.user_agent, args.status_code);
             let _ = buster.expect("Failed to run dirbuster").run().await;
         }
         BusterMode::Dns => {
