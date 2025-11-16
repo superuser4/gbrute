@@ -2,19 +2,16 @@ use clap::Parser;
 mod bust;
 mod dirbuster;
 mod dns;
-mod fuzz;
 mod version;
 use clap::ValueEnum;
 use bust::Buster;
 use dirbuster::DirBuster;
 use dns::DnsBuster;
-use fuzz::FuzzBuster;
 
 #[derive(ValueEnum, Clone, Debug)]
 enum BusterMode {
     Dir,
     Dns,
-    Fuzz,
 }
 
 /// GBrute is a web directory, dns, and parameter brute-forcer
@@ -71,9 +68,7 @@ fn print_entry(args: &Args, mode: &BusterMode) {
         }
         BusterMode::Dns => {
         }
-        BusterMode::Fuzz => {
-        }
-    }
+   }
     println!("{menu}");
 }
 
@@ -91,9 +86,5 @@ async fn main() {
             let dnsbuster = DnsBuster::new(args.url, args.wordlist, args.threads, args.timeout, args.user_agent, args.recursive);
             let _ = dnsbuster.expect("Failed to run dnsbuster").run().await;
         }
-        BusterMode::Fuzz => {
-            let fuzzbuster = FuzzBuster::new(args.url, args.wordlist, args.threads, args.timeout, args.user_agent);
-            let _ = fuzzbuster.expect("Failed to run fuzzer").run().await;
-        }
-    }
+   }
 }
