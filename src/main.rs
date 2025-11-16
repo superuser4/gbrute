@@ -1,17 +1,14 @@
 use clap::Parser;
 mod bust;
 mod dirbuster;
-mod dns;
 mod version;
 use clap::ValueEnum;
 use bust::Buster;
 use dirbuster::DirBuster;
-use dns::DnsBuster;
 
 #[derive(ValueEnum, Clone, Debug)]
 enum BusterMode {
     Dir,
-    Dns,
 }
 
 /// GBrute is a web directory, dns, and parameter brute-forcer
@@ -66,9 +63,7 @@ fn print_entry(args: &Args, mode: &BusterMode) {
             menu += format!("[*] Ignored Status Codes: {:?} \n", args.status_code).as_str();
             menu += format!("[*] User-Agent: {}\n", args.user_agent).as_str();
         }
-        BusterMode::Dns => {
-        }
-   }
+  }
     println!("{menu}");
 }
 
@@ -81,10 +76,6 @@ async fn main() {
         BusterMode::Dir => {
             let buster = DirBuster::new(args.url, args.wordlist, args.threads, args.timeout, args.user_agent, args.status_code, args.recursive);
             let _ = buster.expect("Failed to run dirbuster").run().await;
-        }
-        BusterMode::Dns => {
-            let dnsbuster = DnsBuster::new(args.url, args.wordlist, args.threads, args.timeout, args.user_agent, args.recursive);
-            let _ = dnsbuster.expect("Failed to run dnsbuster").run().await;
         }
    }
 }
